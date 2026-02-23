@@ -6,65 +6,30 @@
 
 #!/bin/bash
 
+set -euo pipefail
+
 USERNAME="$1"
-LOCAL_KEY_PATH="./public_keys/${USERNAME}.pub"
-REMOTE_KEY_URL="https://github.com/Skirmigle/SYS-265-Tech-Journal/public_keys/$USERNAME.pub"
-SSHD_CONFIG="/etc/ssh/sshd_config"
+USERHOME="/home/$USERNAME"
+SSH_DIR="$USERHOME/.ssh"
+PUB_KEY_SOURCE="linux/public-keys/id_rsa.pub"
+AUTHORIZED_KEYS="$SSH_DIR/authorized_keys"
 
-#validation
+# create user
+useradd -m -d "$USER_HOME" -s /bin/bash "$USERNAME"
 
-if [[ $# -ne 1]]; then
-	echo "no username"
-	exit 1
-fi
+# Create .ssh directory
+mkdir "SSH_DIR"
 
-if [[ $EUID -ne 0 ]]; then
-	echo "must be run as root"
-	exit 1
+# Copy public key to authorized_keys
+cp "$PUB_KEY_SOURCE" "$AUTHORIZED_KEYS"
 
-# creates new user
-
-if id "$USERNAME" &>/dev/null; then 
-	echo "User already exists, user creation failed"
-else
-	useradd -m -s /bin/bash "$USERNAME"
-	echo "User created Successfully"
-fi
-
-#Create ssh directory
-
-USER_HOME=$(eval echo "~$USERNAME")
-SSH_DIR="$USER_HOME/.ssh"
-
-mkdir -p "$SSH_DIR"
+# Set permissions
 chmod 700 "$SSH_DIR"
-chown "$USERNAME:$USERNAME" "$SSH_DIR"
+chmod 600 "$AUTHORIZED_KEYS"
 
-# adds new public key
-
-PUBLIC_KEYS=$SSH_DIR/authorized_keys
-
-if [[ -f "$LOCAL_KEY_PATH" ]] then
-	cat "$LOCAL_KEY_PATH" >> "$PUBLIC_KEYS"
-	echo "Public key added from local repo."
-else
-	echo "Local key not found. curling..."
-	curl -fsSL "{REMOTE_KEY_URL}"" >> "$PUBLIC_KEYS
-	echo "Public key added from remote repo."
-fi
-
-chmod 600 "$PUBLIC_KEYS"
-chown "$USERNAME:$USERNAME" "$PUBLIC_KEYS"
-
-
-# changes ssh permissions
-
-if grep -q "^PermitRootLogin" "$SSHD_CONFIG"; then
-	sed -i 's/^PermitRootLogin.*/PermitRootLogin no/' "$SSHD_CONFIG"
-else 
-	echo "PermitRootLogin no" >> "$SSHD_CONFIG"
-fi
+#set ownership
+chown -R "$USERNAME:$USERNAME" "$SSH_DIR"
 
 # restart sshd and finish
 systemctl restart sshd
-echo "Task Completed"
+echo "Task Completed, $USERNAME has been setup"
