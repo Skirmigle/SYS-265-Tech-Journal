@@ -15,7 +15,7 @@ PUB_KEY_SOURCE="linux/public-keys/id_rsa.pub"
 AUTHORIZED_KEYS="$SSH_DIR/authorized_keys"
 
 # create user
-useradd -m -d "$USER_HOME" -s /bin/bash "$USERNAME"
+useradd -m -d "$USERHOME" -s /bin/bash "$USERNAME"
 
 # Create .ssh directory
 mkdir "SSH_DIR"
