@@ -6,19 +6,17 @@
 
 #!/bin/bash
 
-set -euo pipefail
-
 USERNAME="$1"
 USERHOME="/home/$USERNAME"
 SSH_DIR="$USERHOME/.ssh"
-PUB_KEY_SOURCE="linux/public-keys/id_rsa.pub"
+PUB_KEY_SOURCE="/home/champuser/SYS-265-System-Admin.-Network-Services-II-Tech-Journal/linux/public-keys/id_rsa.pub"
 AUTHORIZED_KEYS="$SSH_DIR/authorized_keys"
 
 # create user
 useradd -m -d "$USERHOME" -s /bin/bash "$USERNAME"
 
 # Create .ssh directory
-mkdir "SSH_DIR"
+mkdir "$SSH_DIR"
 
 # Copy public key to authorized_keys
 cp "$PUB_KEY_SOURCE" "$AUTHORIZED_KEYS"
@@ -30,6 +28,5 @@ chmod 600 "$AUTHORIZED_KEYS"
 #set ownership
 chown -R "$USERNAME:$USERNAME" "$SSH_DIR"
 
-# restart sshd and finish
-systemctl restart sshd
+# finish
 echo "Task Completed, $USERNAME has been setup"
